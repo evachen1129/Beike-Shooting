@@ -21,6 +21,10 @@ export interface EnemyRocket extends Entity {
   progress: number; // 0 to 1
   isIntercepted?: boolean;
   alienType: number;
+  hp: number;
+  maxHp: number;
+  hasShield?: boolean;
+  isBoss?: boolean;
 }
 
 export interface InterceptorMissile extends Entity {
@@ -54,5 +58,8 @@ export interface GameState {
   missiles: InterceptorMissile[];
   batteries: Battery[];
   cities: City[];
-  explosions: { x: number; y: number; radius: number; maxRadius: number; id: string }[];
+  explosions: { x: number; y: number; radius: number; maxRadius: number; id: string; color?: string }[];
+  energy: number;
+  combo: number;
+  lastKillTime: number;
 }
