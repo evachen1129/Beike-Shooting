@@ -123,8 +123,8 @@ export default function App() {
     setStatus(GameStatus.PLAYING);
     
     const intro = lang === 'zh' 
-      ? '贝贝，可可！外星飞碟正在靠近，启动联合防线！' 
-      : 'Beibei, Keke! UFOs approaching, activate the joint defense!';
+      ? '贝贝（元气橙）：准备好大干一场了吗？可可（冰晶蓝）：雷达已锁定，保持专注。' 
+      : 'BeiBei (Orange): Ready for action? KeKe (Blue): Radar locked, stay focused.';
     setStoryText(intro);
     setTimeout(() => setStoryText(''), 4000);
   }, [lang]);
@@ -212,17 +212,18 @@ export default function App() {
       (bestBattery as Battery).missiles -= missilesToFire;
       
       for (let i = 0; i < missilesToFire; i++) {
-        const offset = isMiddle ? (i === 0 ? -10 : 10) : 0;
+        // For middle battery, fire sequentially on the same ray
+        const progressDelay = isMiddle ? (i === 0 ? 0 : -0.08) : 0;
         missilesRef.current.push({
           id: Math.random().toString(36).substr(2, 9),
-          x: (bestBattery as Battery).x + offset,
+          x: (bestBattery as Battery).x,
           y: (bestBattery as Battery).y,
-          startX: (bestBattery as Battery).x + offset,
+          startX: (bestBattery as Battery).x,
           startY: (bestBattery as Battery).y,
-          targetX: targetX + offset,
+          targetX: targetX,
           targetY,
           speed: 0.04,
-          progress: 0,
+          progress: progressDelay,
           isExploding: false,
           explosionRadius: 0,
           maxExplosionRadius: 40,
@@ -461,6 +462,8 @@ export default function App() {
         ctx.translate(b.x, b.y);
 
         const isMiddle = index === 1;
+        const isLeft = index === 0;
+        const isRight = index === 2;
         const flagW = 40;
         const flagH = 26;
         
@@ -469,6 +472,15 @@ export default function App() {
         ctx.fillRect(-25, -5, 50, 10);
         
         if (isMiddle) {
+          // Castle under the flag
+          ctx.fillStyle = '#4b5563'; // Slate 600
+          ctx.fillRect(-30, 5, 60, 15); // Main base
+          ctx.fillRect(-30, -5, 15, 10); // Left tower
+          ctx.fillRect(15, -5, 15, 10); // Right tower
+          ctx.fillStyle = '#374151'; // Slate 700
+          ctx.fillRect(-10, 5, 20, 15); // Gate area
+          
+          // Flag
           ctx.fillStyle = '#DE2910';
           ctx.fillRect(-flagW/2, -flagH, flagW, flagH);
           ctx.fillStyle = '#FFDE00';
@@ -479,13 +491,25 @@ export default function App() {
             ctx.lineTo(Math.cos((54+i*72)/180*Math.PI)*r/2 - 12, Math.sin((54+i*72)/180*Math.PI)*r/2 - 18);
           }
           ctx.closePath(); ctx.fill();
-        } else {
-          ctx.fillStyle = 'white';
-          ctx.fillRect(-flagW/2, -flagH, flagW, flagH/3);
-          ctx.fillStyle = '#0039A6';
-          ctx.fillRect(-flagW/2, -flagH + flagH/3, flagW, flagH/3);
-          ctx.fillStyle = '#D52B1E';
-          ctx.fillRect(-flagW/2, -flagH + 2*flagH/3, flagW, flagH/3);
+        } else if (isLeft) {
+          // Draw BeiBei (Orange Girl)
+          ctx.fillStyle = '#FF6B00'; // Orange
+          ctx.beginPath(); ctx.arc(0, -20, 12, 0, Math.PI*2); ctx.fill(); // Head
+          ctx.fillStyle = '#fff';
+          ctx.fillRect(-10, -10, 20, 15); // Body
+          // Ponytails
+          ctx.fillStyle = '#FF6B00';
+          ctx.beginPath(); ctx.arc(-12, -25, 6, 0, Math.PI*2); ctx.fill();
+          ctx.beginPath(); ctx.arc(12, -25, 6, 0, Math.PI*2); ctx.fill();
+        } else if (isRight) {
+          // Draw KeKe (Blue Girl)
+          ctx.fillStyle = '#00A3FF'; // Blue
+          ctx.beginPath(); ctx.arc(0, -20, 12, 0, Math.PI*2); ctx.fill(); // Head
+          ctx.fillStyle = '#fff';
+          ctx.fillRect(-10, -10, 20, 15); // Body
+          // Single Ponytail
+          ctx.fillStyle = '#00A3FF';
+          ctx.beginPath(); ctx.arc(8, -28, 7, 0, Math.PI*2); ctx.fill();
         }
 
         ctx.strokeStyle = '#888';
@@ -686,11 +710,11 @@ export default function App() {
           </div>
           <div className="w-px h-10 bg-white/10" />
           <div className="flex flex-col items-end">
-            <span className="text-white/30 uppercase text-[10px] font-bold tracking-[0.2em] mb-1">Energy</span>
+            <span className="text-white/30 uppercase text-[10px] font-bold tracking-[0.2em] mb-1">Overdrive</span>
             <div className="w-32 h-2 bg-white/5 rounded-full overflow-hidden border border-white/10">
               <motion.div 
                 animate={{ width: `${energy}%` }}
-                className="h-full bg-gradient-to-r from-purple-500 to-fuchsia-500"
+                className="h-full bg-gradient-to-r from-orange-500 to-blue-500"
               />
             </div>
           </div>
@@ -724,25 +748,17 @@ export default function App() {
 
         {/* Characters */}
         <div className="absolute bottom-4 left-4 flex flex-col items-center gap-2">
-          <motion.div 
-            animate={{ y: [0, -5, 0] }}
-            transition={{ repeat: Infinity, duration: 3 }}
-            className="w-16 h-16 rounded-2xl bg-red-500/20 border border-red-500/40 flex items-center justify-center overflow-hidden"
-          >
-            <img src="https://picsum.photos/seed/beibei/100/100" alt="Beibei" className="w-full h-full object-cover grayscale brightness-125" referrerPolicy="no-referrer" />
-          </motion.div>
-          <span className="text-[10px] font-bold uppercase tracking-widest text-red-400">Beibei</span>
+          <div className="flex flex-col items-center">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-orange-400">BeiBei</span>
+            <span className="text-[8px] text-orange-400/60 font-medium">Energy: {energy}%</span>
+          </div>
         </div>
 
         <div className="absolute bottom-4 right-4 flex flex-col items-center gap-2">
-          <motion.div 
-            animate={{ y: [0, -5, 0] }}
-            transition={{ repeat: Infinity, duration: 3, delay: 1.5 }}
-            className="w-16 h-16 rounded-2xl bg-blue-500/20 border border-blue-500/40 flex items-center justify-center overflow-hidden"
-          >
-            <img src="https://picsum.photos/seed/keke/100/100" alt="Keke" className="w-full h-full object-cover grayscale brightness-125" referrerPolicy="no-referrer" />
-          </motion.div>
-          <span className="text-[10px] font-bold uppercase tracking-widest text-blue-400">Keke</span>
+          <div className="flex flex-col items-center">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-blue-400">KeKe</span>
+            <span className="text-[8px] text-blue-400/60 font-medium">Tactics: {round}</span>
+          </div>
         </div>
 
         {/* Overlays */}
